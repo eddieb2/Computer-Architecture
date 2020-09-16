@@ -2,6 +2,11 @@
 
 import sys
 
+# Instructions
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
 class CPU:
     """Main CPU class."""
 
@@ -11,12 +16,6 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
-
-        self.branchtable = {
-            0b00000001: self.HLT,
-            0b10000010: self.LDI,
-            0b01000111: self.PRN,
-        }
 
     # RAM read
     def ram_read(self, MAR):
@@ -56,6 +55,7 @@ class CPU:
             0b00000001, # HLT
         ]
 
+        #
         for instruction in program:
             self.ram[address] = instruction
             address += 1
@@ -98,6 +98,19 @@ class CPU:
             op_1 = self.ram_read(self.pc + 1)
             op_2 = self.ram_read(self.pc + 2)
 
-            self.branchtable[ir](op_1, op_2)
+            if ir == HLT:
+                self.running = False
+                self.pc += 1
+                # print(self.running)
+            elif ir == LDI:
+                self.reg[op_1] = op_2
+                self.pc += 3
+            elif ir == PRN:
+                print(self.reg[op_1])
+                self.pc += 2
+            else:
+                print("Broken")
 
-
+c1 = CPU()
+c1.load()
+c1.run()
