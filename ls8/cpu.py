@@ -8,6 +8,36 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.running = True
+
+        self.branchtable = {
+            0b00000001: self.HLT,
+            0b10000010: self.LDI,
+            0b01000111: self.PRN,
+        }
+
+    # RAM read
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+
+    # RAM write
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
+
+    def HLT(self, op_1, op_2):
+        self.running = False
+        self.pc += 1
+
+    def LDI(self, op_1, op_2):
+        self.reg[op_1] = op_2
+        self.pc += 3
+
+    def PRN(self, op_1, op_2):
+        num = self.reg[op_1]
+        print(num)
+        self.pc += 2
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +92,12 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while self.running is True:
+            ir = self.ram[self.pc]
+
+            op_1 = self.ram_read(self.pc + 1)
+            op_2 = self.ram_read(self.pc + 2)
+
+            self.branchtable[ir](op_1, op_2)
+
+
