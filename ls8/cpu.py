@@ -6,6 +6,7 @@ import sys
 HLT = 0b00000001 # 1
 LDI = 0b10000010 # 130
 PRN = 0b01000111 # 71
+MUL = 0b10100010 # 162
 
 class CPU:
     """Main CPU class."""
@@ -91,6 +92,8 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == 'MUL':
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -144,6 +147,9 @@ class CPU:
                 # Increment PC to halt
                 self.pc += 2
                 # print(self.pc)
+            elif ir == MUL:
+                self.alu('MUL', op_1, op_2)
+                self.pc += 3
             else:
                 print("Broken")
         # print(self.ram)
