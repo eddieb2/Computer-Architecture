@@ -3,63 +3,87 @@
 import sys
 
 # Instructions
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
+HLT = 0b00000001 # 1
+LDI = 0b10000010 # 130
+PRN = 0b01000111 # 71
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        """Construct a new CPU."""
+        # Memory
         self.ram = [0] * 256
+        # Registers -> variables in hardware - fixed num and name of these registers
         self.reg = [0] * 8
+        # Program Counter -> Address of the currently executing instruction
         self.pc = 0
+        # Keeps us running or stopped
         self.running = True
 
-    # RAM read
+    '''
+    `MAR`: Memory Address Register
+    =>> holds the memory address we're reading or writing
+    
+    `MDR`: Memory Data Register
+    =>> holds the value to write or the value just read
+    '''
+    ## RAM read ##
     def ram_read(self, MAR):
         return self.ram[MAR]
 
-    # RAM write
+    ## RAM write ##
     def ram_write(self, MAR, MDR):
+        # ram location = value
         self.ram[MAR] = MDR
 
-    def HLT(self, op_1, op_2):
-        self.running = False
-        self.pc += 1
+    # ORIGINAL LOAD
+    # def load(self):
+    #     """Load a program into memory."""
+    #
+    #     address = 0
+    #
+    #     # For now, we've just hardcoded a program:
+    #
+    #     program = [
+    #         # From print8.ls8
+    #         0b10000010, # LDI R0,8
+    #         0b00000000, # 0
+    #         0b00001000, # 8
+    #         0b01000111, # PRN R0
+    #         0b00000000, # 0
+    #         0b00000001, # HLT
+    #     ]
+    #
+    #     # Saves each instruction to a new address in memory
+    #     for instruction in program:
+    #         self.ram[address] = instruction
+    #         address += 1
 
-    def LDI(self, op_1, op_2):
-        self.reg[op_1] = op_2
-        self.pc += 3
-
-    def PRN(self, op_1, op_2):
-        num = self.reg[op_1]
-        print(num)
-        self.pc += 2
-
+    # NEW LOAD
     def load(self):
-        """Load a program into memory."""
+        try:
+            address = 0
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    t = line.split('#')
+                    n = t[0].strip()
 
-        address = 0
+                    if n == '':
+                        continue
 
-        # For now, we've just hardcoded a program:
+                    # base 2
+                    try:
+                        value = int(n, 2)
+                    except ValueError:
+                        print(f'Invalid number {value}')
+                        sys.exit(1)
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+                    self.ram[address] = value
+                    address += 1
 
-        #
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        except FileNotFoundError:
+            print('File not found.')
+            sys.exit(2)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -93,24 +117,36 @@ class CPU:
     def run(self):
         """Run the CPU."""
         while self.running is True:
+            # Instruction Register -> copy of currently executing instructions
+            # ram @ index 0 to start .. LDI 130
             ir = self.ram[self.pc]
 
             op_1 = self.ram_read(self.pc + 1)
             op_2 = self.ram_read(self.pc + 2)
 
+            # print(f'{op_1, op_2}')
+
             if ir == HLT:
+                # print(f'HLT: {ir}')
                 self.running = False
                 self.pc += 1
-                # print(self.running)
+                # print(self.pc)
             elif ir == LDI:
+                # print(f'LDI: {ir}')
+                # Store op_2 in a register at index op_1 or 0
                 self.reg[op_1] = op_2
                 self.pc += 3
+                # print(self.pc)
             elif ir == PRN:
+                # print(f'PRN: {ir}')
+                # Print value stored at reg[0] which is 8
                 print(self.reg[op_1])
+                # Increment PC to halt
                 self.pc += 2
+                # print(self.pc)
             else:
                 print("Broken")
+        # print(self.ram)
 
 c1 = CPU()
-c1.load()
-c1.run()
+# c1.load()
