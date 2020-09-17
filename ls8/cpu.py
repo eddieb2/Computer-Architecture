@@ -7,6 +7,8 @@ HLT = 0b00000001 # 1
 LDI = 0b10000010 # 130
 PRN = 0b01000111 # 71
 MUL = 0b10100010 # 162
+POP = 0b01000110
+PUSH = 0b01000101
 
 class CPU:
     """Main CPU class."""
@@ -20,6 +22,7 @@ class CPU:
         self.pc = 0
         # Keeps us running or stopped
         self.running = True
+        self.sp = 7
 
     '''
     `MAR`: Memory Address Register
@@ -150,9 +153,21 @@ class CPU:
             elif ir == MUL:
                 self.alu('MUL', op_1, op_2)
                 self.pc += 3
+            elif ir == PUSH:
+                # decrement sp
+                self.sp -= 1
+                # get the value from the reg
+                val = self.reg[op_1]
+                self.ram[self.sp] = val
+                self.pc += 2
+            elif ir == POP:
+
+                val = self.ram[self.sp]
+                self.reg[op_1] = val
+                # increment sp
+                self.sp += 1
+                self.pc += 2
             else:
                 print("Broken")
         # print(self.ram)
 
-c1 = CPU()
-# c1.load()
