@@ -9,6 +9,9 @@ PRN = 0b01000111 # 71
 MUL = 0b10100010 # 162
 POP = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -23,6 +26,7 @@ class CPU:
         # Keeps us running or stopped
         self.running = True
         self.sp = 7
+        self.reg[self.sp] = 0xf4
 
     '''
     `MAR`: Memory Address Register
@@ -161,12 +165,19 @@ class CPU:
                 self.ram[self.sp] = val
                 self.pc += 2
             elif ir == POP:
-
                 val = self.ram[self.sp]
                 self.reg[op_1] = val
                 # increment sp
                 self.sp += 1
                 self.pc += 2
+            elif ir == CALL:
+                self.reg[self.sp] -= 1
+                self.ram[self.reg[self.sp]] = self.pc + 2
+                # reg_i = self.ram[self.pc + 1]
+                self.pc = self.reg[op_1]
+            elif ir == RET:
+                self.pc = self.ram[self.reg[self.sp]]
+                self.reg[self.sp] += 1
             else:
                 print("Broken")
         # print(self.ram)
